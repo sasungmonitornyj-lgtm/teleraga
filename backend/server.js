@@ -1,142 +1,186 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/auth');
+const chatRoutes = require('./routes/chats');
+const messageRoutes = require('./routes/messages');
+const Message = require('./models/Message');
+const User = require('./models/User');
+const Chat = require('./models/Chat');
+
+// Подключаемся к базе данных
+connectDB();
 
 const app = express();
+const server = http.createServer(app);
+
+// Настройка CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://твой-ник.github.io'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://telerag.vercel.app'],
   credentials: true
 }));
 
-const server = http.createServer(app);
+app.use(express.json());
+
+// Роуты
+app.use('/api/auth', authRoutes);
+app.use('/api/chats', chatRoutes);
+app.use('/api/messages', messageRoutes);
+
+// WebSocket сервер
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://твой-ник.github.io'],
-    methods: ['GET', 'POST'],
-    credentials: true,
-    transports: ['websocket', 'polling']
-  },
-  allowEIO3: true
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://telerag.vercel.app'],
+    credentials: true
+  }
 });
 
-// Хранение активных пользователей
-const users = new Map();
-const activeCalls = new Map();
+// Хранилище подключенных пользователей
+const onlineUsers = new Map();
+
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+      return next(new Error('Authentication error'));
+    }
+
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const user = await User.findById(decoded.userId);
+    
+    if (!user) {
+      return next(new Error('User not found'));
+    }
+
+    socket.user = user;
+    next();
+  } catch (error) {
+    next(new Error('Authentication error'));
+  }
+});
 
 io.on('connection', (socket) => {
-  console.log('✅ Пользователь подключился:', socket.id);
+  console.log('✅ Пользователь подключился:', socket.user.username);
   
-  // Добавляем пользователя
-  users.set(socket.id, {
-    id: socket.id,
-    joinedAt: new Date().toISOString()
+  // Сохраняем пользователя
+  onlineUsers.set(socket.user._id.toString(), {
+    socketId: socket.id,
+    user: socket.user
   });
 
-  // Отправляем список пользователей всем
-  io.emit('users:list', Array.from(users.values()));
+  // Обновляем статус в базе
+  User.findByIdAndUpdate(socket.user._id, { online: true, lastSeen: new Date() }).exec();
 
-  // Обработка сообщений
-  socket.on('message', (message) => {
-    console.log('📨 Сообщение:', message);
-    // Добавляем ID отправителя
-    message.senderId = socket.id;
-    // Отправляем всем (в реальном проекте нужно фильтровать по чату)
-    io.emit('message', message);
-  });
+  // Отправляем список онлайн пользователей всем
+  io.emit('users:online', Array.from(onlineUsers.keys()));
 
-  // Начало звонка
-  socket.on('call:start', ({ signal, chatId, type }) => {
-    console.log('📞 Звонок начат:', { from: socket.id, chatId, type });
-    
-    // Сохраняем информацию о звонке
-    activeCalls.set(chatId, {
-      initiator: socket.id,
-      type,
-      startedAt: new Date().toISOString()
-    });
-
-    // Отправляем всем в чате (кроме отправителя)
-    socket.broadcast.emit('call:incoming', { 
-      signal, 
-      from: socket.id, 
-      chatId, 
-      type 
+  // Присоединяемся к комнатам чатов
+  Chat.find({ participants: socket.user._id }).then(chats => {
+    chats.forEach(chat => {
+      socket.join(chat._id.toString());
     });
   });
 
-  // Принятие звонка
-  socket.on('call:accept', ({ signal, to }) => {
-    console.log('✅ Звонок принят:', { from: socket.id, to });
-    io.to(to).emit('call:accepted', signal);
-  });
+  // Отправка сообщения
+  socket.on('message:send', async (data) => {
+    try {
+      const { chatId, content, type = 'text' } = data;
 
-  // Завершение звонка
-  socket.on('call:end', ({ chatId }) => {
-    console.log('❌ Звонок завершен:', { chatId, by: socket.id });
-    
-    if (activeCalls.has(chatId)) {
-      activeCalls.delete(chatId);
+      // Проверяем, есть ли пользователь в чате
+      const chat = await Chat.findOne({
+        _id: chatId,
+        participants: socket.user._id
+      });
+
+      if (!chat) {
+        return socket.emit('error', { message: 'Chat not found' });
+      }
+
+      // Создаем сообщение
+      const message = new Message({
+        chat: chatId,
+        sender: socket.user._id,
+        content,
+        type,
+        readBy: [socket.user._id]
+      });
+
+      await message.save();
+      await message.populate('sender', 'username avatar');
+
+      // Обновляем последнее сообщение в чате
+      chat.lastMessage = message._id;
+      await chat.save();
+
+      // Отправляем сообщение всем в комнате
+      io.to(chatId).emit('message:new', message);
+
+      // Отправляем уведомления офлайн пользователям (можно добавить позже)
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      socket.emit('error', { message: 'Failed to send message' });
     }
-    
-    socket.broadcast.emit('call:ended', { chatId, by: socket.id });
   });
 
-  // Отклонение звонка
-  socket.on('call:reject', ({ to, chatId }) => {
-    console.log('❌ Звонок отклонен:', { from: socket.id, to, chatId });
-    io.to(to).emit('call:rejected', { by: socket.id, chatId });
-  });
-
-  // Пользователь печатает
-  socket.on('typing', ({ chatId, isTyping }) => {
-    socket.broadcast.emit('typing', { 
-      userId: socket.id, 
-      chatId, 
-      isTyping 
+  // Печатает...
+  socket.on('typing:start', ({ chatId }) => {
+    socket.to(chatId).emit('typing:start', {
+      userId: socket.user._id,
+      username: socket.user.username,
+      chatId
     });
+  });
+
+  socket.on('typing:stop', ({ chatId }) => {
+    socket.to(chatId).emit('typing:stop', {
+      userId: socket.user._id,
+      chatId
+    });
+  });
+
+  // Прочитано
+  socket.on('messages:read', async ({ chatId, messageIds }) => {
+    try {
+      await Message.updateMany(
+        { _id: { $in: messageIds } },
+        { $addToSet: { readBy: socket.user._id } }
+      );
+
+      io.to(chatId).emit('messages:read', {
+        userId: socket.user._id,
+        chatId,
+        messageIds
+      });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
   });
 
   // Отключение
-  socket.on('disconnect', () => {
-    console.log('❌ Пользователь отключился:', socket.id);
+  socket.on('disconnect', async () => {
+    console.log('❌ Пользователь отключился:', socket.user?.username);
     
-    // Удаляем пользователя
-    users.delete(socket.id);
-    
-    // Завершаем все звонки этого пользователя
-    activeCalls.forEach((call, chatId) => {
-      if (call.initiator === socket.id) {
-        activeCalls.delete(chatId);
-        io.emit('call:ended', { chatId, by: socket.id });
-      }
-    });
+    if (socket.user) {
+      onlineUsers.delete(socket.user._id.toString());
+      
+      // Обновляем статус
+      await User.findByIdAndUpdate(socket.user._id, { 
+        online: false, 
+        lastSeen: new Date() 
+      });
 
-    // Обновляем список пользователей
-    io.emit('users:list', Array.from(users.values()));
-  });
-});
-
-// Простой роут для проверки
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'Мессенджер API работает',
-    users: users.size,
-    activeCalls: activeCalls.size
-  });
-});
-
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    connections: io.engine.clientsCount
+      // Отправляем обновленный список
+      io.emit('users:online', Array.from(onlineUsers.keys()));
+    }
   });
 });
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`);
-  console.log(`📡 WebSocket готов к подключениям`);
 });

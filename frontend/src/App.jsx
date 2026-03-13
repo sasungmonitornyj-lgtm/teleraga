@@ -5,7 +5,7 @@ import { FaPhone, FaVideo, FaUserPlus, FaUsers } from 'react-icons/fa';
 import './App.css';
 
 // ЗАМЕНИ ЭТОТ URL НА ТВОЙ БЭКЕНД ПОСЛЕ ДЕПЛОЯ НА RENDER
-const SOCKET_URL = 'https://teleraga-api.onrender.com';
+const SOCKET_URL = 'http://localhost:3001';
 
 const socket = io(SOCKET_URL, {
   transports: ['websocket'],
