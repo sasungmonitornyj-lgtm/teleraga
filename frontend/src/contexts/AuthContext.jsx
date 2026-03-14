@@ -35,53 +35,66 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    try {
-      setError('');
-      const response = await fetch('https://teleraga-api.onrender.com/api/auth/login', {
-        email,
-        password
-      });
-      
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setUser(user);
-      socketService.connect(token);
-      
-      return { success: true };
-    } catch (err) {
-      const message = err.response?.data?.error || 'Ошибка входа';
-      setError(message);
-      return { success: false, error: message };
+  try {
+    setError('');
+    const response = await fetch('https://teleraga-api.onrender.com/api/auth/login', {
+      method: 'POST', // ← ЭТО ВАЖНО!
+      headers: {
+        'Content-Type': 'application/json', // ← И ЭТО!
+      },
+      body: JSON.stringify({ email, password }) // ← ТЕЛО ЗАПРОСА
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Ошибка входа');
     }
-  };
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    setUser(data.user);
+    socketService.connect(data.token);
+    
+    return { success: true };
+  } catch (err) {
+    const message = err.message || 'Ошибка входа';
+    setError(message);
+    return { success: false, error: message };
+  }
+};
 
-  const register = async (username, email, password) => {
-    try {
-      setError('');
-      const response = await fetch('https://teleraga-api.onrender.com/api/auth/register', {
-        username,
-        email,
-        password
-      });
-      
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      setUser(user);
-      socketService.connect(token);
-      
-      return { success: true };
-    } catch (err) {
-      const message = err.response?.data?.error || 'Ошибка регистрации';
-      setError(message);
-      return { success: false, error: message };
+const register = async (username, email, password) => {
+  try {
+    setError('');
+    const response = await fetch('https://teleraga-api.onrender.com/api/auth/register', {
+      method: 'POST', // ← ОБЯЗАТЕЛЬНО!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password }) // ← ТЕЛО
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Ошибка регистрации');
     }
-  };
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    
+    setUser(data.user);
+    socketService.connect(data.token);
+    
+    return { success: true };
+  } catch (err) {
+    const message = err.message || 'Ошибка регистрации';
+    setError(message);
+    return { success: false, error: message };
+  }
+};
 
   const logout = () => {
     localStorage.removeItem('token');
