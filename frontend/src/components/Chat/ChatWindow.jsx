@@ -1,3 +1,4 @@
+import './Chat.css';
 import React, { useState, useEffect } from 'react';
 import { chats } from '../../services/api';
 import socketService from '../../services/socket';
