@@ -106,7 +106,11 @@ const ChatList = ({ activeChat, onSelectChat, user }) => {
       <div className="chat-list">
         <div className="chat-list-header">
           <h2>Чаты</h2>
-          <button className="new-chat-btn">+</button>
+          <button className="new-chat-btn" onClick={() => onSearchClick()} title="Новый чат">
+  <svg viewBox="0 0 24 24" width="24" height="24">
+    <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+  </svg>
+</button>
         </div>
         <div className="chat-list-loading">
           <div className="loading-spinner"></div>
