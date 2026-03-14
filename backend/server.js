@@ -19,7 +19,7 @@ const server = http.createServer(app);
 
 // Настройка CORS
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://telerag.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'https://teleraga.vercel.app'],
   credentials: true
 }));
 
@@ -33,7 +33,7 @@ app.use('/api/messages', messageRoutes);
 // WebSocket сервер
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://telerag.vercel.app'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'https://teleraga.vercel.app'],
     credentials: true
   }
 });
