@@ -40,6 +40,7 @@ export const chats = {
   getPrivate: (userId) => api.post('/chats/private', { userId }),
   createGroup: (data) => api.post('/chats/group', data),
   getById: (chatId) => api.get(`/chats/${chatId}`),
+  addParticipants: (chatId, userIds) => api.post(`/chats/${chatId}/participants`, { userIds }),
 };
 
 export const messages = {
@@ -53,6 +54,5 @@ export const users = {
   getById: (userId) => api.get(`/users/${userId}`),
 };
 
-export default api;
-export { auth, chats, messages, users };
+// 👇 ТОЛЬКО ОДИН export default, вот так:
 export default api;
