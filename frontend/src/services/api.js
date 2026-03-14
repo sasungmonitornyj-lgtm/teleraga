@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://teleraga-api.onrender.com';
+const API_URL = 'https://telerag-api.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
