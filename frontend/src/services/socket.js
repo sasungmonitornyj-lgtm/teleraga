@@ -1,18 +1,19 @@
 import { io } from 'socket.io-client';
 
-// Замени на свой URL после деплоя
-const SOCKET_URL = 'http://localhost:3001';
-
 class SocketService {
   constructor() {
     this.socket = null;
   }
 
   connect(token) {
-    this.socket = io(SOCKET_URL, {
+    if (this.socket?.connected) return this.socket;
+
+    this.socket = io('https://teleraga-api.onrender.com', {
       auth: { token },
       transports: ['websocket'],
-      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     this.socket.on('connect', () => {
@@ -20,7 +21,11 @@ class SocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Socket connection error:', error);
+      console.error('❌ Socket connection error:', error.message);
+    });
+
+    this.socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
     });
 
     return this.socket;
