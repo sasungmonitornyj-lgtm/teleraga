@@ -7,6 +7,8 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chats');
 const messageRoutes = require('./routes/messages');
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
 const Message = require('./models/Message');
 const User = require('./models/User');
 const Chat = require('./models/Chat');
