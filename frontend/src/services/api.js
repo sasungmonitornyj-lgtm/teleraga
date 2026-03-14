@@ -48,4 +48,9 @@ export const messages = {
   delete: (messageId) => api.delete(`/messages/${messageId}`),
 };
 
+export const users = {
+  search: (query) => api.get(`/users/search?query=${encodeURIComponent(query)}`),
+  getById: (userId) => api.get(`/users/${userId}`),
+};
+
 export default api;
