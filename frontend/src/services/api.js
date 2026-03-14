@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// Замени на свой URL после деплоя
-const API_URL = 'https://teleraga-api.onrender.com/';
+const API_URL = 'https://teleraga-api.onrender.com';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -10,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Добавляем токен к каждому запросу
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -19,14 +17,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Обработка ошибок
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
@@ -43,7 +40,6 @@ export const chats = {
   getPrivate: (userId) => api.post('/chats/private', { userId }),
   createGroup: (data) => api.post('/chats/group', data),
   getById: (chatId) => api.get(`/chats/${chatId}`),
-  addParticipants: (chatId, userIds) => api.post(`/chats/${chatId}/participants`, { userIds }),
 };
 
 export const messages = {
