@@ -5,6 +5,7 @@ import Register from './components/Auth/Register';
 import ChatList from './components/Chat/ChatList';
 import ChatWindow from './components/Chat/ChatWindow';
 import './App.css';
+import UserSearch from './components/UserSearch/UserSearch';
 
 const ChatApp = () => {
   const { user, loading } = useAuth();
