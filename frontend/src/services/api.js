@@ -54,3 +54,5 @@ export const users = {
 };
 
 export default api;
+export { auth, chats, messages, users };
+export default api;
