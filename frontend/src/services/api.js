@@ -50,9 +50,11 @@ export const messages = {
 };
 
 export const users = {
-  search: (query) => api.get(`/users/search?query=${encodeURIComponent(query)}`),
+  search: (query) => {
+    console.log('🔍 Searching for:', query); // ← Добавь эту строку
+    return api.get(`/users/search?query=${encodeURIComponent(query)}`);
+  },
   getById: (userId) => api.get(`/users/${userId}`),
 };
-
 // 👇 ТОЛЬКО ОДИН export default, вот так:
 export default api;
