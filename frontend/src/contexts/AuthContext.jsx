@@ -1,32 +1,47 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { auth } from '../services/api';
+import axios from 'axios';
 import socketService from '../services/socket';
 
-const AuthContext = createContext({});
+const AuthContext = createContext(null);
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-      socketService.connect(token);
+      try {
+        setUser(JSON.parse(savedUser));
+        socketService.connect(token);
+      } catch (err) {
+        console.error('Failed to restore session:', err);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
-    
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-      setError(null);
-      const response = await auth.login({ email, password });
+      setError('');
+      const response = await axios.post('http://localhost:3001/api/auth/login', {
+        email,
+        password
+      });
+      
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
@@ -36,16 +51,22 @@ export const AuthProvider = ({ children }) => {
       socketService.connect(token);
       
       return { success: true };
-    } catch (error) {
-      setError(error.response?.data?.error || 'Ошибка входа');
-      return { success: false, error: error.response?.data?.error };
+    } catch (err) {
+      const message = err.response?.data?.error || 'Ошибка входа';
+      setError(message);
+      return { success: false, error: message };
     }
   };
 
   const register = async (username, email, password) => {
     try {
-      setError(null);
-      const response = await auth.register({ username, email, password });
+      setError('');
+      const response = await axios.post('http://localhost:3001/api/auth/register', {
+        username,
+        email,
+        password
+      });
+      
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
@@ -55,9 +76,10 @@ export const AuthProvider = ({ children }) => {
       socketService.connect(token);
       
       return { success: true };
-    } catch (error) {
-      setError(error.response?.data?.error || 'Ошибка регистрации');
-      return { success: false, error: error.response?.data?.error };
+    } catch (err) {
+      const message = err.response?.data?.error || 'Ошибка регистрации';
+      setError(message);
+      return { success: false, error: message };
     }
   };
 
@@ -74,8 +96,12 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     register,
-    logout,
+    logout
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
