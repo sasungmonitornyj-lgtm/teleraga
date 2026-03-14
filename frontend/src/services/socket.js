@@ -8,7 +8,7 @@ class SocketService {
   connect(token) {
     if (this.socket?.connected) return this.socket;
 
-    this.socket = io('https://teleraga-api.onrender.com', {
+    this.socket = io('https://teleraga-api.onrender.com/api', {
       auth: { token },
       transports: ['websocket'],
       reconnection: true,
