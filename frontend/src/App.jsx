@@ -10,15 +10,15 @@ const ChatApp = () => {
   const { user, loading } = useAuth();
   const [activeChat, setActiveChat] = useState(null);
   const [authMode, setAuthMode] = useState('login');
-  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [showUserSearch, setShowUserSearch] = useState(false); // ← ДОБАВЬ ЭТУ СТРОКУ
 
-// Функция обработки создания нового чата
-const handleNewChat = (newChat) => {
-  setShowUserSearch(false);
-  if (newChat) {
-    setActiveChat(newChat);
-  }
-};
+  // Функция обработки создания нового чата
+  const handleNewChat = (newChat) => {
+    setShowUserSearch(false);
+    if (newChat) {
+      setActiveChat(newChat);
+    }
+  };
 
   if (loading) {
     return <div className="loading-screen">Загрузка...</div>;
@@ -34,11 +34,21 @@ const handleNewChat = (newChat) => {
 
   return (
     <div className="messenger-container">
+      {/* 👇 ВОТ СЮДА ВСТАВЛЯЕМ UserSearch */}
+      {showUserSearch && (
+        <UserSearch 
+          onClose={handleNewChat}
+          currentUser={user}
+        />
+      )}
+
       <ChatList 
         activeChat={activeChat?._id} 
         onSelectChat={setActiveChat} 
         user={user}
+        onSearchClick={() => setShowUserSearch(true)} // ← добавляем проп
       />
+      
       {activeChat ? (
         <ChatWindow chat={activeChat} user={user} />
       ) : (
