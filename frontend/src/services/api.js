@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Замени на свой URL после деплоя
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'https://teleraga-api.onrender.com/';
 
 const api = axios.create({
   baseURL: API_URL,
