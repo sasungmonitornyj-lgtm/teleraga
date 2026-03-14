@@ -7,8 +7,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chats');
 const messageRoutes = require('./routes/messages');
-const userRoutes = require('./routes/users');
-app.use('/api/users', userRoutes);
+const userRoutes = require('./routes/users');  // ← это правильно
 const Message = require('./models/Message');
 const User = require('./models/User');
 const Chat = require('./models/Chat');
@@ -27,10 +26,11 @@ app.use(cors({
 
 app.use(express.json());
 
-// Роуты
+// Роуты - ВСЕ ДОЛЖНЫ БЫТЬ ЗДЕСЬ!
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes);  // ← ЭТУ СТРОКУ ПЕРЕНЕСИ СЮДА!
 
 // WebSocket сервер
 const io = new Server(server, {
@@ -39,6 +39,8 @@ const io = new Server(server, {
     credentials: true
   }
 });
+
+// ... остальной код без изменений ...
 
 // Хранилище подключенных пользователей
 const onlineUsers = new Map();
