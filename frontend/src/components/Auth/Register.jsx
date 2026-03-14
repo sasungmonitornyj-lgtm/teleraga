@@ -1,3 +1,4 @@
+import './Auth.css';
 import React, { useState } from 'react';
 
 const Register = ({ onSwitch, onRegister }) => {
