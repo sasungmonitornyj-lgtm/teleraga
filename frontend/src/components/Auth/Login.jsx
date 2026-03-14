@@ -1,74 +1,41 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import './Auth.css';
 
-const Login = ({ onSwitch }) => {
+const Login = ({ onSwitch, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [localError, setLocalError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLocalError('');
-    setLoading(true);
-
-    const result = await login(email, password);
-    
-    if (!result.success) {
-      setLocalError(result.error);
-    }
-    
-    setLoading(false);
+    onLogin({ email, password });
   };
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Telerag</h1>
-        <p className="auth-subtitle">Войдите в свой аккаунт</p>
+        <h1>Telerag</h1>
+        <p>Вход</p>
         
-        {localError && <div className="auth-error">{localError}</div>}
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="form-group">
-            <input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? 'Вход...' : 'Войти'}
-          </button>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Пароль"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Войти</button>
         </form>
         
-        <p className="auth-footer">
+        <p>
           Нет аккаунта?{' '}
-          <button onClick={onSwitch} className="link-button">
-            Зарегистрироваться
-          </button>
+          <button onClick={onSwitch}>Регистрация</button>
         </p>
       </div>
     </div>
