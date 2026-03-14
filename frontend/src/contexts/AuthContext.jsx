@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError('');
-      const response = await axios.post('http://localhost:3001/api/auth/login', {
+      const response = await fetch('https://telerag-api.onrender.com/api/auth/login', {
         email,
         password
       });
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     try {
       setError('');
-      const response = await axios.post('http://localhost:3001/api/auth/register', {
+      const response = await fetch('https://telerag-api.onrender.com/api/auth/register', {
         username,
         email,
         password
