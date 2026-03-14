@@ -3,7 +3,7 @@ import { chats } from '../../services/api';
 import socketService from '../../services/socket';
 import './ChatList.css';
 
-const ChatList = ({ activeChat, onSelectChat, user }) => {
+const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
   const [chatList, setChatList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,6 +35,7 @@ const ChatList = ({ activeChat, onSelectChat, user }) => {
       socketService.off('message:new');
     };
   }, []);
+
 
   const loadChats = async () => {
     try {
