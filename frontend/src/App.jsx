@@ -14,7 +14,7 @@ const ChatApp = () => {
   const [authMode, setAuthMode] = useState('login');
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [showChatList, setShowChatList] = useState(true); // Для телефонов
+  const [showChatList, setShowChatList] = useState(true);
 
   // Определяем, телефон ли это
   const isMobile = window.innerWidth <= 768;
@@ -102,7 +102,7 @@ const ChatApp = () => {
         <ChatWindow 
           chat={activeChat} 
           user={user}
-          onBack={isMobile ? handleBackToList : null}
+          onBack={handleBackToList} // ← ЭТО САМОЕ ВАЖНОЕ!
         />
       )}
       
