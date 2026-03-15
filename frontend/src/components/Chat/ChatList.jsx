@@ -17,18 +17,18 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
     });
 
     socketService.on('message:new', (message) => {
-      setChatList(prev => {
-        const updated = prev.map(chat => 
-          chat._id === message.chat
-            ? { ...chat, lastMessage: message, updatedAt: new Date() }
-            : chat
-        );
-        return updated.sort((a, b) => 
-          new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
-        );
-      });
-    });
-
+  console.log('📨 Обновление списка чатов:', message); // Добавь
+  setChatList(prev => {
+    const updated = prev.map(chat => 
+      chat._id === message.chat
+        ? { ...chat, lastMessage: message, updatedAt: new Date() }
+        : chat
+    );
+    return updated.sort((a, b) => 
+      new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
+    );
+  });
+});
     return () => {
       socketService.off('users:online');
       socketService.off('message:new');
