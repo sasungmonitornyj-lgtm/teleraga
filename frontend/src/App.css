@@ -58,3 +58,181 @@
   font-size: 18px;
   color: var(--primary-color);
 }
+
+/* ===== АДАПТАЦИЯ ПОД ТЕЛЕФОНЫ ===== */
+
+/* Планшеты и маленькие ноутбуки */
+@media (max-width: 1024px) {
+  .chat-list {
+    width: 300px;
+  }
+}
+
+/* Телефоны */
+@media (max-width: 768px) {
+  .messenger-container {
+    position: relative;
+  }
+
+  /* Скрываем/показываем чат-лист */
+  .chat-list {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 10;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .chat-list.hidden {
+    transform: translateX(-100%);
+  }
+
+  /* Чат на весь экран */
+  .chat-window {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 20;
+    background: #f0f2f5;
+  }
+
+  /* Кнопка "назад" в чате */
+  .chat-window-header {
+    padding: 12px 16px;
+  }
+
+  .back-button {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--primary-color);
+    margin-right: 8px;
+  }
+
+  .back-button:hover {
+    background: #f0f2f5;
+  }
+
+  .chat-header-info {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Уменьшаем отступы */
+  .chat-list-header {
+    padding: 12px 16px;
+  }
+
+  .chat-list-search {
+    padding: 6px 12px;
+  }
+
+  .chat-item {
+    padding: 8px 12px;
+  }
+
+  .chat-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .chat-name {
+    font-size: 15px;
+  }
+
+  .message-bubble {
+    max-width: 80%;
+  }
+
+  .message-input-form {
+    padding: 12px 16px;
+  }
+
+  .message-input-form input {
+    padding: 10px 14px;
+    font-size: 16px; /* Чтобы не зумилось на iPhone */
+  }
+
+  .send-btn {
+    min-width: 70px;
+    padding: 0 16px;
+  }
+
+  /* Поиск пользователей на телефоне */
+  .user-search-container {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .user-search-input-wrapper {
+    padding: 10px 12px;
+  }
+
+  .user-result-item {
+    padding: 10px 12px;
+  }
+
+  /* Создание группы на телефоне */
+  .create-group-container {
+    width: 95%;
+  }
+
+  .create-group-content {
+    padding: 16px;
+  }
+}
+
+/* Маленькие телефоны */
+@media (max-width: 480px) {
+  .chat-list-header h2 {
+    font-size: 20px;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+    font-size: 15px;
+  }
+
+  .message-time {
+    font-size: 10px;
+  }
+
+  .attach-btn {
+    padding: 6px 10px;
+  }
+
+  .group-name-input,
+  .search-input {
+    padding: 10px;
+  }
+
+  .selected-user {
+    padding: 3px 6px;
+    font-size: 13px;
+  }
+
+  .user-result-name {
+    font-size: 14px;
+  }
+
+  .user-result-email {
+    font-size: 12px;
+  }
+}
+
+/* Кнопка назад (добавим в ChatWindow) */
+.back-button {
+  display: none;
+}
