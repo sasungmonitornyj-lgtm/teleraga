@@ -302,13 +302,13 @@ const ChatWindow = ({ chat, user, onBack }) => {
     <div className="chat-window">
       <div className="chat-window-header">
         <div className="chat-header-info">
-          {onBack && (
-            <button className="back-button" onClick={onBack}>
-              <svg width="20" height="20" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-              </svg>
-            </button>
-          )}
+         {onBack && (
+  <button className="back-button" onClick={onBack}>
+    <svg width="20" height="20" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  </button>
+)}
           <div>
             <h3>{getChatName()}</h3>
             {chat.type === 'group' && (
