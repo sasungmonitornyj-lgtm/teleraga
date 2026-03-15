@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // 👈 ДОБАВЛЕН useRef!
 import { users, chats } from '../../services/api';
 import './CreateGroup.css';
 
@@ -25,7 +25,6 @@ const CreateGroup = ({ onClose, currentUser }) => {
     debounceTimeout.current = setTimeout(async () => {
       try {
         const response = await users.search(searchQuery);
-        // Фильтруем уже выбранных
         const filtered = response.data.filter(u => 
           !selectedUsers.some(selected => selected._id === u._id)
         );
