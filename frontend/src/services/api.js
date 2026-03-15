@@ -9,10 +9,9 @@ const api = axios.create({
   },
 });
 
-// ЭТО САМОЕ ВАЖНОЕ - добавляет токен к каждому запросу
+// Добавляем токен к каждому запросу
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  console.log('🔑 Token from localStorage:', token ? 'есть' : 'нет'); // для отладки
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,7 +22,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.log('🚫 401 ошибка - токен недействителен');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/';
@@ -53,10 +51,7 @@ export const messages = {
 };
 
 export const users = {
-  search: (query) => {
-    console.log('🔍 Searching for:', query);
-    return api.get(`/users/search?query=${encodeURIComponent(query)}`);
-  },
+  search: (query) => api.get(`/users/search?query=${encodeURIComponent(query)}`),
   getById: (userId) => api.get(`/users/${userId}`),
 };
 

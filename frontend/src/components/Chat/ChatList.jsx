@@ -23,7 +23,6 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
             ? { ...chat, lastMessage: message, updatedAt: new Date() }
             : chat
         );
-        // Сортируем по последнему сообщению
         return updated.sort((a, b) => 
           new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
         );
@@ -35,7 +34,6 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
       socketService.off('message:new');
     };
   }, []);
-
 
   const loadChats = async () => {
     try {
@@ -59,10 +57,9 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
 
   const getChatAvatar = (chat) => {
     if (chat.type === 'group') {
-      return chat.avatar || '👥';
+      return '👥';
     }
-    const otherParticipant = chat.participants?.find(p => p._id !== user?.id);
-    return otherParticipant?.avatar || '👤';
+    return '👤';
   };
 
   const getLastMessage = (chat) => {
@@ -107,11 +104,6 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
       <div className="chat-list">
         <div className="chat-list-header">
           <h2>Чаты</h2>
-          <button className="new-chat-btn" onClick={() => onSearchClick()} title="Новый чат">
-  <svg viewBox="0 0 24 24" width="24" height="24">
-    <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-  </svg>
-</button>
         </div>
         <div className="chat-list-loading">
           <div className="loading-spinner"></div>
@@ -124,16 +116,12 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
   return (
     <div className="chat-list">
       <div className="chat-list-header">
-        <div className="header-left">
-          <h2>Telerag</h2>
-        </div>
-        <div className="header-right">
-          <button className="new-chat-btn" title="Новый чат">
-            <svg viewBox="0 0 24 24" width="24" height="24">
-              <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-          </button>
-        </div>
+        <h2>Telerag</h2>
+        <button className="new-chat-btn" onClick={onSearchClick} title="Новый чат">
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          </svg>
+        </button>
       </div>
       
       <div className="chat-list-search">
@@ -142,7 +130,7 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
         </svg>
         <input 
           type="text" 
-          placeholder="Поиск или новый чат" 
+          placeholder="Поиск чатов..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -152,7 +140,9 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
         {filteredChats.length === 0 ? (
           <div className="no-chats">
             <p>Чатов пока нет</p>
-            <button className="start-chat-btn">Написать сообщение</button>
+            <button className="start-chat-btn" onClick={onSearchClick}>
+              Найти собеседника
+            </button>
           </div>
         ) : (
           filteredChats.map(chat => {
@@ -167,7 +157,7 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
                 onClick={() => onSelectChat(chat)}
               >
                 <div className="chat-avatar">
-                  <span className="avatar-text">{getChatAvatar(chat)}</span>
+                  <span>{getChatAvatar(chat)}</span>
                   {isOnline && <span className="online-dot" />}
                 </div>
                 
@@ -181,9 +171,6 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
                   
                   <div className="chat-last-message">
                     <span className="message-text">{getLastMessage(chat)}</span>
-                    {chat.unreadCount > 0 && (
-                      <span className="unread-badge">{chat.unreadCount}</span>
-                    )}
                   </div>
                 </div>
               </div>

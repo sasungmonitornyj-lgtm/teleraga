@@ -45,13 +45,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e9edef;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .user-search-header h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #111b21;
+  color: var(--text-primary);
 }
 
 .close-btn {
@@ -78,7 +78,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #e9edef;
+  border-bottom: 1px solid var(--border-color);
   position: relative;
 }
 
@@ -109,10 +109,6 @@
   border-top-color: #00a884;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .user-search-results {
@@ -175,7 +171,7 @@
 
 .user-result-name {
   font-weight: 500;
-  color: #111b21;
+  color: var(--text-primary);
   font-size: 15px;
   margin-bottom: 4px;
   white-space: nowrap;
@@ -200,7 +196,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* Стилизация скроллбара */
 .user-search-results::-webkit-scrollbar {
   width: 6px;
 }

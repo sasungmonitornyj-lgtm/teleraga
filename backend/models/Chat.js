@@ -35,7 +35,6 @@ const chatSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Индекс для быстрого поиска чатов пользователя
 chatSchema.index({ participants: 1 });
 
 module.exports = mongoose.model('Chat', chatSchema);

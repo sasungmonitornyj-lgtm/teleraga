@@ -1,5 +1,7 @@
 import { io } from 'socket.io-client';
 
+const SOCKET_URL = 'https://teleraga-api.onrender.com';
+
 class SocketService {
   constructor() {
     this.socket = null;
@@ -8,7 +10,7 @@ class SocketService {
   connect(token) {
     if (this.socket?.connected) return this.socket;
 
-    this.socket = io('https://teleraga-api.onrender.com/api', {
+    this.socket = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket'],
       reconnection: true,

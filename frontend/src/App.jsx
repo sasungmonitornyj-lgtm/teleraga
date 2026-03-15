@@ -4,16 +4,15 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import ChatList from './components/Chat/ChatList';
 import ChatWindow from './components/Chat/ChatWindow';
-import './App.css';
 import UserSearch from './components/UserSearch/UserSearch';
+import './App.css';
 
 const ChatApp = () => {
   const { user, loading } = useAuth();
   const [activeChat, setActiveChat] = useState(null);
   const [authMode, setAuthMode] = useState('login');
-  const [showUserSearch, setShowUserSearch] = useState(false); // ← ДОБАВЬ ЭТУ СТРОКУ
+  const [showUserSearch, setShowUserSearch] = useState(false);
 
-  // Функция обработки создания нового чата
   const handleNewChat = (newChat) => {
     setShowUserSearch(false);
     if (newChat) {
@@ -35,7 +34,6 @@ const ChatApp = () => {
 
   return (
     <div className="messenger-container">
-      {/* 👇 ВОТ СЮДА ВСТАВЛЯЕМ UserSearch */}
       {showUserSearch && (
         <UserSearch 
           onClose={handleNewChat}
@@ -47,7 +45,7 @@ const ChatApp = () => {
         activeChat={activeChat?._id} 
         onSelectChat={setActiveChat} 
         user={user}
-        onSearchClick={() => setShowUserSearch(true)} // ← добавляем проп
+        onSearchClick={() => setShowUserSearch(true)}
       />
       
       {activeChat ? (

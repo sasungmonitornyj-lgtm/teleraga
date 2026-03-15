@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { users } from '../../services/api';
-import { chats } from '../../services/api';
+import { users, chats } from '../../services/api';
 import './UserSearch.css';
 
 const UserSearch = ({ onClose, currentUser }) => {
@@ -13,10 +12,8 @@ const UserSearch = ({ onClose, currentUser }) => {
   const debounceTimeout = useRef(null);
 
   useEffect(() => {
-    // Фокус на поле ввода при открытии
     searchRef.current?.focus();
 
-    // Обработчик клика вне компонента
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         onClose();
@@ -28,7 +25,6 @@ const UserSearch = ({ onClose, currentUser }) => {
   }, [onClose]);
 
   useEffect(() => {
-    // Дебаунс поиска
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
@@ -56,13 +52,14 @@ const UserSearch = ({ onClose, currentUser }) => {
   const startPrivateChat = async (userId) => {
     try {
       setCreatingChat(true);
+      setSelectedUser(userId);
       const response = await chats.getPrivate(userId);
-      // Закрываем поиск и переключаемся на новый чат
       onClose(response.data);
     } catch (error) {
       console.error('Error creating chat:', error);
     } finally {
       setCreatingChat(false);
+      setSelectedUser(null);
     }
   };
 
@@ -71,7 +68,7 @@ const UserSearch = ({ onClose, currentUser }) => {
       <div className="user-search-container" ref={searchRef}>
         <div className="user-search-header">
           <h3>Новый чат</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={() => onClose()}>×</button>
         </div>
 
         <div className="user-search-input-wrapper">

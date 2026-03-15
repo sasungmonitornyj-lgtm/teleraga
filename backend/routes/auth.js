@@ -6,7 +6,6 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
-// Регистрация
 router.post('/register', [
   body('username').isLength({ min: 3 }).withMessage('Имя пользователя должно быть минимум 3 символа'),
   body('email').isEmail().withMessage('Некорректный email'),
@@ -20,17 +19,14 @@ router.post('/register', [
 
     const { username, email, password } = req.body;
 
-    // Проверяем, существует ли пользователь
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
       return res.status(400).json({ error: 'Пользователь с таким email или именем уже существует' });
     }
 
-    // Создаем пользователя
     const user = new User({ username, email, password });
     await user.save();
 
-    // Создаем токен
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'secret',
@@ -52,7 +48,6 @@ router.post('/register', [
   }
 });
 
-// Вход
 router.post('/login', [
   body('email').isEmail().withMessage('Введите корректный email'),
   body('password').notEmpty().withMessage('Введите пароль')
@@ -65,19 +60,16 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Ищем пользователя
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Неверный email или пароль' });
     }
 
-    // Проверяем пароль
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Неверный email или пароль' });
     }
 
-    // Создаем токен
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'secret',
@@ -99,7 +91,6 @@ router.post('/login', [
   }
 });
 
-// Получение текущего пользователя
 router.get('/me', auth, async (req, res) => {
   res.json(req.user);
 });

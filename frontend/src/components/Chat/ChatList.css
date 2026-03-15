@@ -1,7 +1,7 @@
 .chat-list {
   width: 350px;
   background: white;
-  border-right: 1px solid #e9edef;
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -13,11 +13,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e9edef;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.header-left h2 {
-  color: #111b21;
+.chat-list-header h2 {
+  color: var(--text-primary);
   font-size: 22px;
   font-weight: 600;
 }
@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #e9edef;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .search-icon {
@@ -99,7 +99,6 @@
   justify-content: center;
   color: white;
   font-size: 20px;
-  font-weight: 500;
   position: relative;
   flex-shrink: 0;
 }
@@ -129,7 +128,7 @@
 
 .chat-name {
   font-weight: 500;
-  color: #111b21;
+  color: var(--text-primary);
   font-size: 16px;
   white-space: nowrap;
   overflow: hidden;
@@ -156,20 +155,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.unread-badge {
-  background: #00a884;
-  color: white;
-  font-size: 12px;
-  font-weight: 500;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
 }
 
 .chat-list-loading {
@@ -223,7 +208,6 @@
   background: #008f70;
 }
 
-/* Стилизация скроллбара */
 .chat-list-items::-webkit-scrollbar {
   width: 6px;
 }

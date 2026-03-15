@@ -44,7 +44,6 @@ const messageSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Индексы для быстрого поиска
 messageSchema.index({ chat: 1, createdAt: -1 });
 messageSchema.index({ sender: 1 });
 

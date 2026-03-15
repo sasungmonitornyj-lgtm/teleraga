@@ -9,7 +9,6 @@
   --secondary-color: #00a884;
   --bg-color: #f0f2f5;
   --sidebar-bg: #ffffff;
-  --message-bg: #e3f2fd;
   --text-primary: #111b21;
   --text-secondary: #667781;
   --border-color: #e9edef;
@@ -31,7 +30,6 @@ input {
   outline: none;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }

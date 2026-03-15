@@ -7,7 +7,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chats');
 const messageRoutes = require('./routes/messages');
-const userRoutes = require('./routes/users');  // ← это правильно
+const userRoutes = require('./routes/users');
 const Message = require('./models/Message');
 const User = require('./models/User');
 const Chat = require('./models/Chat');
@@ -26,11 +26,11 @@ app.use(cors({
 
 app.use(express.json());
 
-// Роуты - ВСЕ ДОЛЖНЫ БЫТЬ ЗДЕСЬ!
+// ===== ВСЕ РОУТЫ ДОЛЖНЫ БЫТЬ ЗДЕСЬ =====
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/users', userRoutes);  // ← ЭТУ СТРОКУ ПЕРЕНЕСИ СЮДА!
+app.use('/api/users', userRoutes); // ← ЭТО САМОЕ ВАЖНОЕ!
 
 // WebSocket сервер
 const io = new Server(server, {
@@ -40,9 +40,6 @@ const io = new Server(server, {
   }
 });
 
-// ... остальной код без изменений ...
-
-// Хранилище подключенных пользователей
 const onlineUsers = new Map();
 
 io.use(async (socket, next) => {
@@ -70,31 +67,25 @@ io.use(async (socket, next) => {
 io.on('connection', (socket) => {
   console.log('✅ Пользователь подключился:', socket.user.username);
   
-  // Сохраняем пользователя
   onlineUsers.set(socket.user._id.toString(), {
     socketId: socket.id,
     user: socket.user
   });
 
-  // Обновляем статус в базе
   User.findByIdAndUpdate(socket.user._id, { online: true, lastSeen: new Date() }).exec();
 
-  // Отправляем список онлайн пользователей всем
   io.emit('users:online', Array.from(onlineUsers.keys()));
 
-  // Присоединяемся к комнатам чатов
   Chat.find({ participants: socket.user._id }).then(chats => {
     chats.forEach(chat => {
       socket.join(chat._id.toString());
     });
   });
 
-  // Отправка сообщения
   socket.on('message:send', async (data) => {
     try {
       const { chatId, content, type = 'text' } = data;
 
-      // Проверяем, есть ли пользователь в чате
       const chat = await Chat.findOne({
         _id: chatId,
         participants: socket.user._id
@@ -104,7 +95,6 @@ io.on('connection', (socket) => {
         return socket.emit('error', { message: 'Chat not found' });
       }
 
-      // Создаем сообщение
       const message = new Message({
         chat: chatId,
         sender: socket.user._id,
@@ -116,14 +106,10 @@ io.on('connection', (socket) => {
       await message.save();
       await message.populate('sender', 'username avatar');
 
-      // Обновляем последнее сообщение в чате
       chat.lastMessage = message._id;
       await chat.save();
 
-      // Отправляем сообщение всем в комнате
       io.to(chatId).emit('message:new', message);
-
-      // Отправляем уведомления офлайн пользователям (можно добавить позже)
       
     } catch (error) {
       console.error('Error sending message:', error);
@@ -131,7 +117,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Печатает...
   socket.on('typing:start', ({ chatId }) => {
     socket.to(chatId).emit('typing:start', {
       userId: socket.user._id,
@@ -147,7 +132,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Прочитано
   socket.on('messages:read', async ({ chatId, messageIds }) => {
     try {
       await Message.updateMany(
@@ -165,20 +149,17 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Отключение
   socket.on('disconnect', async () => {
     console.log('❌ Пользователь отключился:', socket.user?.username);
     
     if (socket.user) {
       onlineUsers.delete(socket.user._id.toString());
       
-      // Обновляем статус
       await User.findByIdAndUpdate(socket.user._id, { 
         online: false, 
         lastSeen: new Date() 
       });
 
-      // Отправляем обновленный список
       io.emit('users:online', Array.from(onlineUsers.keys()));
     }
   });
