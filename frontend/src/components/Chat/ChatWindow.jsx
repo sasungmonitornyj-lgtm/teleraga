@@ -15,9 +15,24 @@ const ChatWindow = ({ chat, user }) => {
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // ОЧИЩАЕМ СООБЩЕНИЯ ПРИ СМЕНЕ ЧАТА
   useEffect(() => {
-    loadMessages();
+    setMessageList([]); // ← Очищаем старые сообщения
+    setPage(1); // ← Сбрасываем страницу
+    setHasMore(true); // ← Сбрасываем пагинацию
+    loadMessages(); // ← Загружаем новые
     
+    return () => {
+      // Очищаем таймеры при размонтировании
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [chat._id]); // ← Следим за ID чата
+
+  useEffect(() => {
+    if (!chat?._id) return;
+
     socketService.on('message:new', (message) => {
       console.log('📨 Новое сообщение:', message);
       if (message.chat === chat._id) {
@@ -46,7 +61,7 @@ const ChatWindow = ({ chat, user }) => {
       socketService.off('typing:start');
       socketService.off('typing:stop');
     };
-  }, [chat._id]);
+  }, [chat._id, user.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -62,6 +77,18 @@ const ChatWindow = ({ chat, user }) => {
     }
   };
 
+  const loadMoreMessages = async () => {
+    const nextPage = page + 1;
+    try {
+      const response = await messages.getByChat(chat._id, nextPage);
+      setMessageList(prev => [...response.data.messages, ...prev]);
+      setHasMore(response.data.hasMore);
+      setPage(nextPage);
+    } catch (error) {
+      console.error('Failed to load more messages:', error);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -74,7 +101,6 @@ const ChatWindow = ({ chat, user }) => {
     }
   };
 
-  // 👇 ЭТА ФУНКЦИЯ БЫЛА ОТСУТСТВУЕТ - ДОБАВЛЯЕМ!
   const handleInputChange = (e) => {
     setInput(e.target.value);
     
@@ -102,7 +128,6 @@ const ChatWindow = ({ chat, user }) => {
     }
   };
 
-  // ЗАГРУЗКА ФАЙЛА
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -133,10 +158,14 @@ const ChatWindow = ({ chat, user }) => {
   };
 
   const getChatName = () => {
+    if (!chat) return 'Чат';
     if (chat.type === 'group') return chat.name || 'Групповой чат';
     const other = chat.participants?.find(p => p._id !== user.id);
     return other?.username || 'Чат';
   };
+
+  // Если нет чата, ничего не показываем
+  if (!chat) return null;
 
   return (
     <div className="chat-window">
@@ -152,8 +181,8 @@ const ChatWindow = ({ chat, user }) => {
       </div>
 
       <div className="messages-container">
-        {hasMore && (
-          <button onClick={() => setPage(p => p + 1)} className="load-more">
+        {hasMore && messageList.length > 0 && (
+          <button onClick={loadMoreMessages} className="load-more">
             Загрузить ещё
           </button>
         )}
@@ -187,7 +216,7 @@ const ChatWindow = ({ chat, user }) => {
         <input
           type="text"
           value={input}
-          onChange={handleInputChange} // 👈 ТЕПЕРЬ ФУНКЦИЯ ЕСТЬ!
+          onChange={handleInputChange}
           onKeyPress={(e) => e.key === 'Enter' && sendMessage(e)}
           placeholder="Написать сообщение..."
           autoComplete="off"
