@@ -74,6 +74,21 @@ const ChatWindow = ({ chat, user }) => {
     }
   };
 
+  // 👇 ЭТА ФУНКЦИЯ БЫЛА ОТСУТСТВУЕТ - ДОБАВЛЯЕМ!
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    handleTyping(true);
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      handleTyping(false);
+    }, 1000);
+  };
+
   const sendMessage = (e) => {
     e.preventDefault();
     if (input.trim()) {
@@ -94,19 +109,16 @@ const ChatWindow = ({ chat, user }) => {
 
     setUploading(true);
 
-    // Конвертируем файл в base64
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async () => {
       const base64 = reader.result;
       
-      // Определяем тип файла
       let messageType = 'file';
       if (file.type.startsWith('image/')) {
         messageType = 'image';
       }
 
-      // Отправляем через сокет
       socketService.emit('message:send', {
         chatId: chat._id,
         content: file.name,
@@ -175,7 +187,7 @@ const ChatWindow = ({ chat, user }) => {
         <input
           type="text"
           value={input}
-          onChange={handleInputChange}
+          onChange={handleInputChange} // 👈 ТЕПЕРЬ ФУНКЦИЯ ЕСТЬ!
           onKeyPress={(e) => e.key === 'Enter' && sendMessage(e)}
           placeholder="Написать сообщение..."
           autoComplete="off"
@@ -190,7 +202,6 @@ const ChatWindow = ({ chat, user }) => {
           Отправить
         </button>
 
-        {/* Скрытый input для файлов */}
         <input
           type="file"
           ref={fileInputRef}
