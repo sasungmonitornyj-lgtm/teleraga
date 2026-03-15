@@ -12,7 +12,7 @@ class SocketService {
 
     this.socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ['websocket'],
+      transports: ['websocket'], // Важно!
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
