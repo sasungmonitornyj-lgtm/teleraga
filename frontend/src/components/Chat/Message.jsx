@@ -18,6 +18,32 @@ const Message = ({ message, isOwn }) => {
           </div>
         );
       
+      case 'video':
+        return (
+          <div className="message-video-container">
+            <video 
+              src={message.fileUrl} 
+              controls
+              className="message-video"
+              style={{ borderRadius: '12px', maxWidth: '300px' }}
+            />
+            <div className="message-caption">{message.content}</div>
+          </div>
+        );
+      
+      case 'voice':
+        return (
+          <div className="message-voice-container">
+            <audio 
+              src={message.fileUrl} 
+              controls
+              className="message-audio"
+              style={{ maxWidth: '250px' }}
+            />
+            <div className="message-caption">{message.content}</div>
+          </div>
+        );
+      
       case 'file':
         return (
           <a 
