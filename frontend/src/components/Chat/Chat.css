@@ -442,3 +442,24 @@
     transform: translateY(0);
   }
 }
+
+/* Наклоняем скрепку */
+.action-btn:first-child svg {
+  transform: rotate(15deg);
+  transition: transform 0.2s;
+}
+
+.action-btn:first-child:hover svg {
+  transform: rotate(25deg);
+}
+
+/* Для телефонов тоже */
+@media (max-width: 768px) {
+  .action-btn:first-child svg {
+    transform: rotate(15deg);
+  }
+  
+  .action-btn:first-child:hover svg {
+    transform: rotate(25deg);
+  }
+}
