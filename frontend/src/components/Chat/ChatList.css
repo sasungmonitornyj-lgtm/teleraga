@@ -224,3 +224,34 @@
 .chat-list-items::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Добавь в конец файла */
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.new-group-btn {
+  background: none;
+  border: none;
+  color: #54656f;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.new-group-btn:hover {
+  background: #e9edef;
+}
+
+.group-indicator {
+  font-size: 14px;
+  color: #667781;
+  margin-left: 4px;
+}

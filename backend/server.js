@@ -24,13 +24,15 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+// Увеличиваем лимит для загрузки файлов
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// ===== ВСЕ РОУТЫ ДОЛЖНЫ БЫТЬ ЗДЕСЬ =====
+// Роуты
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/users', userRoutes); // ← ЭТО САМОЕ ВАЖНОЕ!
+app.use('/api/users', userRoutes);
 
 // WebSocket сервер
 const io = new Server(server, {
@@ -82,9 +84,10 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Отправка сообщения (включая файлы)
   socket.on('message:send', async (data) => {
     try {
-      const { chatId, content, type = 'text' } = data;
+      const { chatId, content, type = 'text', fileUrl, fileName, fileSize } = data;
 
       const chat = await Chat.findOne({
         _id: chatId,
@@ -100,6 +103,9 @@ io.on('connection', (socket) => {
         sender: socket.user._id,
         content,
         type,
+        fileUrl,
+        fileName,
+        fileSize,
         readBy: [socket.user._id]
       });
 
@@ -109,12 +115,31 @@ io.on('connection', (socket) => {
       chat.lastMessage = message._id;
       await chat.save();
 
+      // Отправляем всем в комнате
       io.to(chatId).emit('message:new', message);
       
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit('error', { message: 'Failed to send message' });
     }
+  });
+
+  // Создание группы (уведомление)
+  socket.on('group:created', (data) => {
+    // Присоединяем создателя к комнате группы
+    socket.join(data.chatId);
+    // Можно отправить уведомление всем участникам
+  });
+
+  // Добавление участников в группу
+  socket.on('group:participants:added', ({ chatId, participants }) => {
+    // Присоединяем новых участников к комнате
+    participants.forEach(userId => {
+      const userSocket = Array.from(onlineUsers.values()).find(u => u.user._id.toString() === userId);
+      if (userSocket) {
+        io.to(userSocket.socketId).emit('group:joined', { chatId });
+      }
+    });
   });
 
   socket.on('typing:start', ({ chatId }) => {

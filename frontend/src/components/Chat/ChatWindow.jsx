@@ -10,22 +10,24 @@ const ChatWindow = ({ chat, user }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [typing, setTyping] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-  loadMessages();
-
-  socketService.on('message:new', (message) => {
-    console.log('📨 Новое сообщение:', message); // Добавь для проверки
-    if (message.chat === chat._id) {
-      setMessageList(prev => [...prev, message]);
-      socketService.emit('messages:read', { 
-        chatId: chat._id, 
-        messageIds: [message._id] 
-      });
-    }
-  });
+    loadMessages();
+    
+    socketService.on('message:new', (message) => {
+      console.log('📨 Новое сообщение:', message);
+      if (message.chat === chat._id) {
+        setMessageList(prev => [...prev, message]);
+        socketService.emit('messages:read', { 
+          chatId: chat._id, 
+          messageIds: [message._id] 
+        });
+      }
+    });
 
     socketService.on('typing:start', ({ userId, username, chatId }) => {
       if (chatId === chat._id && userId !== user.id) {
@@ -85,18 +87,37 @@ const ChatWindow = ({ chat, user }) => {
     }
   };
 
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-    
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    
-    handleTyping(true);
-    
-    typingTimeoutRef.current = setTimeout(() => {
-      handleTyping(false);
-    }, 1000);
+  // ЗАГРУЗКА ФАЙЛА
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+
+    // Конвертируем файл в base64
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      const base64 = reader.result;
+      
+      // Определяем тип файла
+      let messageType = 'file';
+      if (file.type.startsWith('image/')) {
+        messageType = 'image';
+      }
+
+      // Отправляем через сокет
+      socketService.emit('message:send', {
+        chatId: chat._id,
+        content: file.name,
+        type: messageType,
+        fileUrl: base64,
+        fileName: file.name,
+        fileSize: file.size
+      });
+
+      setUploading(false);
+    };
   };
 
   const getChatName = () => {
@@ -108,12 +129,14 @@ const ChatWindow = ({ chat, user }) => {
   return (
     <div className="chat-window">
       <div className="chat-window-header">
-        <h3>{getChatName()}</h3>
-        {chat.type === 'group' && (
-          <span className="chat-type">
-            {chat.participants?.length || 0} участников
-          </span>
-        )}
+        <div className="chat-header-info">
+          <h3>{getChatName()}</h3>
+          {chat.type === 'group' && (
+            <span className="chat-type">
+              {chat.participants?.length || 0} участников
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="messages-container">
@@ -140,18 +163,41 @@ const ChatWindow = ({ chat, user }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="message-input-form">
+      <div className="message-input-form">
+        <button 
+          className="attach-btn"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+        >
+          {uploading ? '⏳' : '📎'}
+        </button>
+        
         <input
           type="text"
           value={input}
           onChange={handleInputChange}
+          onKeyPress={(e) => e.key === 'Enter' && sendMessage(e)}
           placeholder="Написать сообщение..."
           autoComplete="off"
+          disabled={uploading}
         />
-        <button type="submit" disabled={!input.trim()}>
+        
+        <button 
+          onClick={sendMessage} 
+          disabled={!input.trim() || uploading}
+          className="send-btn"
+        >
           Отправить
         </button>
-      </form>
+
+        {/* Скрытый input для файлов */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          style={{ display: 'none' }}
+        />
+      </div>
     </div>
   );
 };

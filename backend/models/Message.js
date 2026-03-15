@@ -13,7 +13,6 @@ const messageSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: true,
     trim: true
   },
   type: {
@@ -23,6 +22,12 @@ const messageSchema = new mongoose.Schema({
   },
   fileUrl: {
     type: String
+  },
+  fileName: {
+    type: String
+  },
+  fileSize: {
+    type: Number
   },
   readBy: [{
     type: mongoose.Schema.Types.ObjectId,

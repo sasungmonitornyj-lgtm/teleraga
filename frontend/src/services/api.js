@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Добавляем токен к каждому запросу
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -39,13 +38,16 @@ export const auth = {
 export const chats = {
   getAll: () => api.get('/chats'),
   getPrivate: (userId) => api.post('/chats/private', { userId }),
-  createGroup: (data) => api.post('/chats/group', data),
+  createGroup: (data) => api.post('/chats/group', data), // НОВЫЙ МЕТОД
   getById: (chatId) => api.get(`/chats/${chatId}`),
-  addParticipants: (chatId, userIds) => api.post(`/chats/${chatId}/participants`, { userIds }),
+  addParticipants: (chatId, userIds) => api.post(`/chats/${chatId}/participants`, { userIds }), // НОВЫЙ МЕТОД
+  removeParticipant: (chatId, userId) => api.delete(`/chats/${chatId}/participants/${userId}`), // НОВЫЙ МЕТОД
+  updateGroup: (chatId, data) => api.put(`/chats/${chatId}`, data), // НОВЫЙ МЕТОД
 };
 
 export const messages = {
   getByChat: (chatId, page = 1) => api.get(`/messages/${chatId}?page=${page}`),
+  send: (data) => api.post('/messages', data), // НОВЫЙ МЕТОД для файлов
   markAsRead: (chatId) => api.post(`/messages/read/${chatId}`),
   delete: (messageId) => api.delete(`/messages/${messageId}`),
 };

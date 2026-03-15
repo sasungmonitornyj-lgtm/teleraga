@@ -3,7 +3,7 @@ import { chats } from '../../services/api';
 import socketService from '../../services/socket';
 import './ChatList.css';
 
-const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
+const ChatList = ({ activeChat, onSelectChat, user, onSearchClick, onGroupClick }) => {
   const [chatList, setChatList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,18 +17,19 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
     });
 
     socketService.on('message:new', (message) => {
-  console.log('📨 Обновление списка чатов:', message); // Добавь
-  setChatList(prev => {
-    const updated = prev.map(chat => 
-      chat._id === message.chat
-        ? { ...chat, lastMessage: message, updatedAt: new Date() }
-        : chat
-    );
-    return updated.sort((a, b) => 
-      new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
-    );
-  });
-});
+      console.log('📨 Обновление списка чатов:', message);
+      setChatList(prev => {
+        const updated = prev.map(chat => 
+          chat._id === message.chat
+            ? { ...chat, lastMessage: message, updatedAt: new Date() }
+            : chat
+        );
+        return updated.sort((a, b) => 
+          new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
+        );
+      });
+    });
+
     return () => {
       socketService.off('users:online');
       socketService.off('message:new');
@@ -57,7 +58,7 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
 
   const getChatAvatar = (chat) => {
     if (chat.type === 'group') {
-      return '👥';
+      return chat.avatar || '👥';
     }
     return '👤';
   };
@@ -117,11 +118,18 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
     <div className="chat-list">
       <div className="chat-list-header">
         <h2>Telerag</h2>
-        <button className="new-chat-btn" onClick={onSearchClick} title="Новый чат">
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-          </svg>
-        </button>
+        <div className="header-actions">
+          <button className="new-chat-btn" onClick={onSearchClick} title="Новый чат">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+          <button className="new-group-btn" onClick={onGroupClick} title="Новая группа">
+            <svg viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-1 .05 1.16.84 2 1.87 2 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+          </button>
+        </div>
       </div>
       
       <div className="chat-list-search">
@@ -171,6 +179,9 @@ const ChatList = ({ activeChat, onSelectChat, user, onSearchClick }) => {
                   
                   <div className="chat-last-message">
                     <span className="message-text">{getLastMessage(chat)}</span>
+                    {chat.type === 'group' && (
+                      <span className="group-indicator">👥</span>
+                    )}
                   </div>
                 </div>
               </div>

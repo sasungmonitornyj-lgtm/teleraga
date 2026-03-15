@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+// Получить сообщения чата
 router.get('/:chatId', auth, async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -36,6 +37,48 @@ router.get('/:chatId', auth, async (req, res) => {
   }
 });
 
+// ОТПРАВИТЬ СООБЩЕНИЕ С ФАЙЛОМ (через сокет, но добавим поддержку)
+router.post('/', auth, async (req, res) => {
+  try {
+    const { chatId, content, type = 'text', fileUrl, fileName, fileSize } = req.body;
+
+    const chat = await Chat.findOne({
+      _id: chatId,
+      participants: req.userId
+    });
+
+    if (!chat) {
+      return res.status(404).json({ error: 'Чат не найден' });
+    }
+
+    const message = new Message({
+      chat: chatId,
+      sender: req.userId,
+      content,
+      type,
+      fileUrl,
+      fileName,
+      fileSize,
+      readBy: [req.userId]
+    });
+
+    await message.save();
+    await message.populate('sender', 'username avatar');
+
+    chat.lastMessage = message._id;
+    await chat.save();
+
+    // Здесь нужно будет через сокет отправить всем
+    // Пока просто возвращаем сообщение
+    
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ error: 'Ошибка отправки сообщения' });
+  }
+});
+
+// Отметить сообщения как прочитанные
 router.post('/read/:chatId', auth, async (req, res) => {
   try {
     const { chatId } = req.params;
@@ -56,6 +99,7 @@ router.post('/read/:chatId', auth, async (req, res) => {
   }
 });
 
+// Удалить сообщение
 router.delete('/:messageId', auth, async (req, res) => {
   try {
     const message = await Message.findById(req.params.messageId);

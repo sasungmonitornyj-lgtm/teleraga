@@ -5,6 +5,7 @@ import Register from './components/Auth/Register';
 import ChatList from './components/Chat/ChatList';
 import ChatWindow from './components/Chat/ChatWindow';
 import UserSearch from './components/UserSearch/UserSearch';
+import CreateGroup from './components/Group/CreateGroup'; // Импортируем
 import './App.css';
 
 const ChatApp = () => {
@@ -12,9 +13,11 @@ const ChatApp = () => {
   const [activeChat, setActiveChat] = useState(null);
   const [authMode, setAuthMode] = useState('login');
   const [showUserSearch, setShowUserSearch] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false); // Новое состояние
 
   const handleNewChat = (newChat) => {
     setShowUserSearch(false);
+    setShowCreateGroup(false);
     if (newChat) {
       setActiveChat(newChat);
     }
@@ -41,11 +44,19 @@ const ChatApp = () => {
         />
       )}
 
+      {showCreateGroup && (
+        <CreateGroup 
+          onClose={handleNewChat}
+          currentUser={user}
+        />
+      )}
+
       <ChatList 
         activeChat={activeChat?._id} 
         onSelectChat={setActiveChat} 
         user={user}
         onSearchClick={() => setShowUserSearch(true)}
+        onGroupClick={() => setShowCreateGroup(true)} // Новый проп
       />
       
       {activeChat ? (
