@@ -303,3 +303,89 @@
 .messages-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Добавь в конец Chat.css */
+
+/* Кнопки записи */
+.video-btn,
+.voice-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 12px;
+  color: #54656f;
+  transition: all 0.3s;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-btn:hover,
+.voice-btn:hover {
+  background: #f0f2f5;
+}
+
+.stop-recording-btn {
+  background: #e73a3a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-right: 8px;
+}
+
+.stop-recording-btn:hover {
+  background: #c82333;
+}
+
+/* Видео и аудио сообщения */
+.message-video-container,
+.message-voice-container {
+  max-width: 100%;
+}
+
+.message-video {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.message-audio {
+  width: 250px;
+  height: 40px;
+}
+
+/* Адаптация для телефонов */
+@media (max-width: 768px) {
+  .message-video {
+    max-width: 250px;
+    max-height: 250px;
+  }
+
+  .message-audio {
+    width: 200px;
+  }
+
+  .video-btn,
+  .voice-btn,
+  .attach-btn {
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    font-size: 18px;
+  }
+
+  .stop-recording-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
