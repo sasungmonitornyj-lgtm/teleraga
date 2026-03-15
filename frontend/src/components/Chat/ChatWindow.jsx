@@ -11,12 +11,13 @@ const ChatWindow = ({ chat, user, onBack }) => {
   const [hasMore, setHasMore] = useState(true);
   const [typing, setTyping] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [recording, setRecording] = useState(false); // Для записи голоса
+  const [recording, setRecording] = useState(false);
+  const [recordingType, setRecordingType] = useState(null); // 'video' или 'audio'
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
-  const videoInputRef = useRef(null); // Для кружков
+  const videoInputRef = useRef(null);
 
   useEffect(() => {
     setMessageList([]);
@@ -129,7 +130,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
     }
   };
 
-  // Загрузка файлов
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -159,7 +159,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
     };
   };
 
-  // ЗАПИСЬ КРУЖКОВ (видео)
   const startVideoRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -167,7 +166,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
         audio: true 
       });
       
-      // Создаем элемент видео для превью
       const videoElement = document.createElement('video');
       videoElement.srcObject = stream;
       videoElement.autoplay = true;
@@ -175,12 +173,13 @@ const ChatWindow = ({ chat, user, onBack }) => {
       videoElement.style.position = 'fixed';
       videoElement.style.top = '10px';
       videoElement.style.right = '10px';
-      videoElement.style.width = '120px';
-      videoElement.style.height = '120px';
+      videoElement.style.width = '100px';
+      videoElement.style.height = '100px';
       videoElement.style.borderRadius = '50%';
       videoElement.style.objectFit = 'cover';
       videoElement.style.zIndex = '1000';
-      videoElement.style.border = '3px solid var(--primary-color)';
+      videoElement.style.border = '2px solid #0088cc';
+      videoElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
       document.body.appendChild(videoElement);
 
       const recorder = new MediaRecorder(stream);
@@ -207,7 +206,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
           });
         };
         
-        // Удаляем превью
         document.body.removeChild(videoElement);
         stream.getTracks().forEach(track => track.stop());
       };
@@ -215,11 +213,11 @@ const ChatWindow = ({ chat, user, onBack }) => {
       recorder.start();
       setMediaRecorder(recorder);
       setRecording(true);
+      setRecordingType('video');
 
-      // Останавливаем через 30 секунд (макс длина кружка)
       setTimeout(() => {
         if (recorder.state === 'recording') {
-          stopVideoRecording();
+          stopRecording();
         }
       }, 30000);
 
@@ -229,14 +227,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
     }
   };
 
-  const stopVideoRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-      setRecording(false);
-    }
-  };
-
-  // ЗАПИСЬ ГОЛОСОВЫХ
   const startVoiceRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -271,8 +261,8 @@ const ChatWindow = ({ chat, user, onBack }) => {
       recorder.start();
       setMediaRecorder(recorder);
       setRecording(true);
+      setRecordingType('audio');
 
-      // Останавливаем через 2 минуты
       setTimeout(() => {
         if (recorder.state === 'recording') {
           stopRecording();
@@ -289,6 +279,7 @@ const ChatWindow = ({ chat, user, onBack }) => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
       setRecording(false);
+      setRecordingType(null);
     }
   };
 
@@ -307,7 +298,7 @@ const ChatWindow = ({ chat, user, onBack }) => {
         <div className="chat-header-info">
           {onBack && (
             <button className="back-button" onClick={onBack}>
-              <svg width="24" height="24" viewBox="0 0 24 24">
+              <svg width="20" height="20" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
               </svg>
             </button>
@@ -353,33 +344,42 @@ const ChatWindow = ({ chat, user, onBack }) => {
             className="stop-recording-btn"
             onClick={stopRecording}
           >
-            ⏹️ Остановить
+            <svg width="16" height="16" viewBox="0 0 24 24" style={{ marginRight: '4px' }}>
+              <path fill="currentColor" d="M6 6h12v12H6z"/>
+            </svg>
+            {recordingType === 'video' ? 'Остановить запись' : 'Остановить'}
           </button>
         ) : (
           <>
             <button 
-              className="attach-btn"
+              className="action-btn"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               title="Прикрепить файл"
             >
-              {uploading ? '⏳' : '📎'}
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
+              </svg>
             </button>
             
             <button 
-              className="video-btn"
+              className="action-btn"
               onClick={startVideoRecording}
-              title="Кружок (видео)"
+              title="Видеосообщение"
             >
-              📹
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+              </svg>
             </button>
             
             <button 
-              className="voice-btn"
+              className="action-btn"
               onClick={startVoiceRecording}
               title="Голосовое сообщение"
             >
-              🎤
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+              </svg>
             </button>
           </>
         )}
@@ -392,6 +392,7 @@ const ChatWindow = ({ chat, user, onBack }) => {
           placeholder="Написать сообщение..."
           autoComplete="off"
           disabled={uploading || recording}
+          className="message-input"
         />
         
         <button 
@@ -399,7 +400,9 @@ const ChatWindow = ({ chat, user, onBack }) => {
           disabled={!input.trim() || uploading || recording}
           className="send-btn"
         >
-          Отправить
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
         </button>
 
         <input
