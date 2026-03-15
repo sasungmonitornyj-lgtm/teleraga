@@ -4,31 +4,32 @@ import socketService from '../../services/socket';
 import Message from './Message';
 import './Chat.css';
 
-const ChatWindow = ({ chat, user }) => {
+const ChatWindow = ({ chat, user, onBack }) => {
   const [messageList, setMessageList] = useState([]);
   const [input, setInput] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [typing, setTyping] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [recording, setRecording] = useState(false); // Для записи голоса
+  const [mediaRecorder, setMediaRecorder] = useState(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+  const videoInputRef = useRef(null); // Для кружков
 
-  // ОЧИЩАЕМ СООБЩЕНИЯ ПРИ СМЕНЕ ЧАТА
   useEffect(() => {
-    setMessageList([]); // ← Очищаем старые сообщения
-    setPage(1); // ← Сбрасываем страницу
-    setHasMore(true); // ← Сбрасываем пагинацию
-    loadMessages(); // ← Загружаем новые
+    setMessageList([]);
+    setPage(1);
+    setHasMore(true);
+    loadMessages();
     
     return () => {
-      // Очищаем таймеры при размонтировании
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, [chat._id]); // ← Следим за ID чата
+  }, [chat._id]);
 
   useEffect(() => {
     if (!chat?._id) return;
@@ -128,6 +129,7 @@ const ChatWindow = ({ chat, user }) => {
     }
   };
 
+  // Загрузка файлов
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -157,6 +159,139 @@ const ChatWindow = ({ chat, user }) => {
     };
   };
 
+  // ЗАПИСЬ КРУЖКОВ (видео)
+  const startVideoRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
+      // Создаем элемент видео для превью
+      const videoElement = document.createElement('video');
+      videoElement.srcObject = stream;
+      videoElement.autoplay = true;
+      videoElement.muted = true;
+      videoElement.style.position = 'fixed';
+      videoElement.style.top = '10px';
+      videoElement.style.right = '10px';
+      videoElement.style.width = '120px';
+      videoElement.style.height = '120px';
+      videoElement.style.borderRadius = '50%';
+      videoElement.style.objectFit = 'cover';
+      videoElement.style.zIndex = '1000';
+      videoElement.style.border = '3px solid var(--primary-color)';
+      document.body.appendChild(videoElement);
+
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onload = () => {
+          socketService.emit('message:send', {
+            chatId: chat._id,
+            content: 'Видеосообщение',
+            type: 'video',
+            fileUrl: reader.result,
+            fileName: 'video.webm',
+            fileSize: blob.size
+          });
+        };
+        
+        // Удаляем превью
+        document.body.removeChild(videoElement);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setRecording(true);
+
+      // Останавливаем через 30 секунд (макс длина кружка)
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+          stopVideoRecording();
+        }
+      }, 30000);
+
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Не удалось получить доступ к камере');
+    }
+  };
+
+  const stopVideoRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setRecording(false);
+    }
+  };
+
+  // ЗАПИСЬ ГОЛОСОВЫХ
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onload = () => {
+          socketService.emit('message:send', {
+            chatId: chat._id,
+            content: 'Голосовое сообщение',
+            type: 'voice',
+            fileUrl: reader.result,
+            fileName: 'voice.webm',
+            fileSize: blob.size
+          });
+        };
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setRecording(true);
+
+      // Останавливаем через 2 минуты
+      setTimeout(() => {
+        if (recorder.state === 'recording') {
+          stopRecording();
+        }
+      }, 120000);
+
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      alert('Не удалось получить доступ к микрофону');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setRecording(false);
+    }
+  };
+
   const getChatName = () => {
     if (!chat) return 'Чат';
     if (chat.type === 'group') return chat.name || 'Групповой чат';
@@ -164,19 +299,27 @@ const ChatWindow = ({ chat, user }) => {
     return other?.username || 'Чат';
   };
 
-  // Если нет чата, ничего не показываем
   if (!chat) return null;
 
   return (
     <div className="chat-window">
       <div className="chat-window-header">
         <div className="chat-header-info">
-          <h3>{getChatName()}</h3>
-          {chat.type === 'group' && (
-            <span className="chat-type">
-              {chat.participants?.length || 0} участников
-            </span>
+          {onBack && (
+            <button className="back-button" onClick={onBack}>
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+              </svg>
+            </button>
           )}
+          <div>
+            <h3>{getChatName()}</h3>
+            {chat.type === 'group' && (
+              <span className="chat-type">
+                {chat.participants?.length || 0} участников
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -205,13 +348,41 @@ const ChatWindow = ({ chat, user }) => {
       </div>
 
       <div className="message-input-form">
-        <button 
-          className="attach-btn"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-        >
-          {uploading ? '⏳' : '📎'}
-        </button>
+        {recording ? (
+          <button 
+            className="stop-recording-btn"
+            onClick={stopRecording}
+          >
+            ⏹️ Остановить
+          </button>
+        ) : (
+          <>
+            <button 
+              className="attach-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              title="Прикрепить файл"
+            >
+              {uploading ? '⏳' : '📎'}
+            </button>
+            
+            <button 
+              className="video-btn"
+              onClick={startVideoRecording}
+              title="Кружок (видео)"
+            >
+              📹
+            </button>
+            
+            <button 
+              className="voice-btn"
+              onClick={startVoiceRecording}
+              title="Голосовое сообщение"
+            >
+              🎤
+            </button>
+          </>
+        )}
         
         <input
           type="text"
@@ -220,12 +391,12 @@ const ChatWindow = ({ chat, user }) => {
           onKeyPress={(e) => e.key === 'Enter' && sendMessage(e)}
           placeholder="Написать сообщение..."
           autoComplete="off"
-          disabled={uploading}
+          disabled={uploading || recording}
         />
         
         <button 
           onClick={sendMessage} 
-          disabled={!input.trim() || uploading}
+          disabled={!input.trim() || uploading || recording}
           className="send-btn"
         >
           Отправить
