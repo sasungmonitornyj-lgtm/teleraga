@@ -14,17 +14,18 @@ const ChatWindow = ({ chat, user }) => {
   const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
-    loadMessages();
-    
-    socketService.on('message:new', (message) => {
-      if (message.chat === chat._id) {
-        setMessageList(prev => [...prev, message]);
-        socketService.emit('messages:read', { 
-          chatId: chat._id, 
-          messageIds: [message._id] 
-        });
-      }
-    });
+  loadMessages();
+
+  socketService.on('message:new', (message) => {
+    console.log('📨 Новое сообщение:', message); // Добавь для проверки
+    if (message.chat === chat._id) {
+      setMessageList(prev => [...prev, message]);
+      socketService.emit('messages:read', { 
+        chatId: chat._id, 
+        messageIds: [message._id] 
+      });
+    }
+  });
 
     socketService.on('typing:start', ({ userId, username, chatId }) => {
       if (chatId === chat._id && userId !== user.id) {
