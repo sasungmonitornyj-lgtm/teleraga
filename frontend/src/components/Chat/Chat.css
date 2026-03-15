@@ -389,3 +389,139 @@
     font-size: 13px;
   }
 }
+
+/* Новые стили для кнопок */
+.action-btn {
+  background: none;
+  border: none;
+  color: #54656f;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.action-btn:hover {
+  background: #f0f2f5;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.message-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  height: 36px;
+}
+
+.message-input:focus {
+  border-color: var(--primary-color);
+}
+
+.send-btn {
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.send-btn:hover:not(:disabled) {
+  background: #006699;
+  transform: scale(1.05);
+}
+
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.send-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.stop-recording-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0 12px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+
+.stop-recording-btn:hover {
+  background: #c82333;
+}
+
+.stop-recording-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Для телефонов */
+@media (max-width: 768px) {
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .action-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .message-input {
+    height: 32px;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  .send-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .send-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .stop-recording-btn {
+    height: 32px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+}
