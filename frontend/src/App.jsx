@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import ChatList from './components/Chat/ChatList';
 import ChatWindow from './components/Chat/ChatWindow';
 import UserSearch from './components/UserSearch/UserSearch';
-import CreateGroup from './components/Group/CreateGroup'; // Импортируем
+import CreateGroup from './components/Group/CreateGroup';
 import './App.css';
 
 const ChatApp = () => {
@@ -13,13 +13,50 @@ const ChatApp = () => {
   const [activeChat, setActiveChat] = useState(null);
   const [authMode, setAuthMode] = useState('login');
   const [showUserSearch, setShowUserSearch] = useState(false);
-  const [showCreateGroup, setShowCreateGroup] = useState(false); // Новое состояние
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showChatList, setShowChatList] = useState(true); // Для телефонов
+
+  // Определяем, телефон ли это
+  const isMobile = window.innerWidth <= 768;
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        // Телефон
+        if (activeChat) {
+          setShowChatList(false);
+        }
+      } else {
+        // Компьютер
+        setShowChatList(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeChat]);
+
+  const handleSelectChat = (chat) => {
+    setActiveChat(chat);
+    if (isMobile) {
+      setShowChatList(false);
+    }
+  };
+
+  const handleBackToList = () => {
+    setShowChatList(true);
+  };
 
   const handleNewChat = (newChat) => {
     setShowUserSearch(false);
     setShowCreateGroup(false);
     if (newChat) {
       setActiveChat(newChat);
+      if (isMobile) {
+        setShowChatList(false);
+      }
     }
   };
 
@@ -51,17 +88,25 @@ const ChatApp = () => {
         />
       )}
 
-      <ChatList 
-        activeChat={activeChat?._id} 
-        onSelectChat={setActiveChat} 
-        user={user}
-        onSearchClick={() => setShowUserSearch(true)}
-        onGroupClick={() => setShowCreateGroup(true)} // Новый проп
-      />
+      <div className={`chat-list ${!showChatList ? 'hidden' : ''}`}>
+        <ChatList 
+          activeChat={activeChat?._id} 
+          onSelectChat={handleSelectChat} 
+          user={user}
+          onSearchClick={() => setShowUserSearch(true)}
+          onGroupClick={() => setShowCreateGroup(true)}
+        />
+      </div>
       
-      {activeChat ? (
-        <ChatWindow chat={activeChat} user={user} />
-      ) : (
+      {activeChat && (
+        <ChatWindow 
+          chat={activeChat} 
+          user={user}
+          onBack={isMobile ? handleBackToList : null}
+        />
+      )}
+      
+      {!activeChat && !isMobile && (
         <div className="welcome-screen">
           <h1>Добро пожаловать, {user.username}!</h1>
           <p>Выберите чат, чтобы начать общение</p>
