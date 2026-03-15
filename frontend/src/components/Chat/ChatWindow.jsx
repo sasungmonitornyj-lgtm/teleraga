@@ -4,7 +4,7 @@ import socketService from '../../services/socket';
 import Message from './Message';
 import './Chat.css';
 
-const ChatWindow = ({ chat, user, onBack }) => {
+const ChatWindow = ({ chat, user, onBack }) => { // ← Убедись, что onBack здесь!
   const [messageList, setMessageList] = useState([]);
   const [input, setInput] = useState('');
   const [page, setPage] = useState(1);
@@ -13,7 +13,7 @@ const ChatWindow = ({ chat, user, onBack }) => {
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingType, setRecordingType] = useState(null);
-  const [showAttachMenu, setShowAttachMenu] = useState(false); // Для меню на телефоне
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -180,8 +180,8 @@ const ChatWindow = ({ chat, user, onBack }) => {
       videoElement.style.borderRadius = '50%';
       videoElement.style.objectFit = 'cover';
       videoElement.style.zIndex = '1000';
-      videoElement.style.border = '2px solid #0088cc';
-      videoElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+      videoElement.style.border = '2px solid var(--primary-color)';
+      videoElement.style.boxShadow = '0 2px 8px var(--shadow-color)';
       document.body.appendChild(videoElement);
 
       const recorder = new MediaRecorder(stream);
@@ -293,7 +293,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
     return other?.username || 'Чат';
   };
 
-  // Определяем, телефон ли это
   const isMobile = window.innerWidth <= 768;
 
   if (!chat) return null;
@@ -302,13 +301,13 @@ const ChatWindow = ({ chat, user, onBack }) => {
     <div className="chat-window">
       <div className="chat-window-header">
         <div className="chat-header-info">
-         {onBack && (
-  <button className="back-button" onClick={onBack}>
-    <svg width="20" height="20" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-    </svg>
-  </button>
-)}
+          {onBack && ( // ← Кнопка назад появляется только если есть onBack
+            <button className="back-button" onClick={onBack}>
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+              </svg>
+            </button>
+          )}
           <div>
             <h3>{getChatName()}</h3>
             {chat.type === 'group' && (
@@ -358,7 +357,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
         ) : (
           <>
             {isMobile ? (
-              // Для телефонов - компактная версия
               <>
                 <button 
                   className="action-btn"
@@ -395,7 +393,6 @@ const ChatWindow = ({ chat, user, onBack }) => {
                 )}
               </>
             ) : (
-              // Для компьютеров - все кнопки сразу
               <>
                 <button 
                   className="action-btn"
